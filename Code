@@ -1,0 +1,470 @@
+# BattleShipGame
+Project for Comp170, battleship game where two players are able to play against each while on the same computer
+
+import java.io.File;
+import java.io.FileNotFoundException;
+
+
+public class FinalThree {
+
+    public static void main(String args[]) throws FileNotFoundException {
+        BattleshipGame game = new BattleshipGame();
+        game.instructions();
+        game.playGame();
+    }
+}
+
+/*
+This class will have the bulk of the code. It will have two arrays, that will hold multiple of the boats from the Boat class
+It will have the instructions method
+The game method where the game methods are
+Then the helper methods to print and create boards, one will print out the boards, and one will create the boards
+The two turn methods, where one method will be the code for the turn, and then another that will switch off who's turn it is
+and check if the game is over
+A method to create a boat that will call from the Boat class
+Then a method to create an array of the boats
+Also a method to check if all the boats in array have been sunk
+ */
+
+class BattleshipGame {
+    public Boat[] playerOneBoats;
+    public Boat[] playerTwoBoats;
+    boolean playerOneTurn = true;
+    boolean gameOver = false;
+    Scanner170 console = new Scanner170(System.in);
+
+    /*
+    This is the instructions method. It will print out the instructions.txt file that I have created.
+    I will create a new file called instructions that will take in instructions.txt. Then a scanner that will take in
+    the instructions file. Lastly a while loop that will check if it has a next line and then print out the line.
+     */
+
+    public void instructions() throws FileNotFoundException {
+        File instructions = new File("C:\\COMP170+271\\COMP170+271\\_my_Java_programs\\src\\instructions.txt");
+        Scanner170 reader = new Scanner170(instructions);
+        while (reader.hasNextLine()) {
+            System.out.println(reader.nextLine());
+        }
+    }
+
+    /*
+    This method is where the game will be player.
+    I will first ask the user for the size of the board they would like to play with
+    Then use an if statement, where if size == 6, it will gameSetUp with the arguements size,3,1. 3 is the number of boats the user can build
+    1 is where the boat building process will begin and it will skip building a size two boat
+    Then the else statement I will say size = 8
+    Then call gameSet up with the arguements size, 4, 0
+    4 will be the number of boats the user builds
+    and 0 is so that the user can build a boat the size of two
+     */
+    public void playGame() {
+        System.out.print("What size board do you want to play with: ");
+        int size = console.nextInt();
+
+        if (size == 6) {
+            gameSetUp(size, 3, 1);
+
+        } else {
+            size = 8;
+            gameSetUp(size, 4, 0);
+        }
+
+
+    }
+
+    /*
+        This method setUpGame is where the methods needed to play the game will be. Takes in three parameters depending on the size,
+        int size, int numOfBoats, int startBoat. Then depending on the size it will see how many boats will be needed and prompt
+        the user to start placing down boats. Then after both players place down their boats I will call takeTurns where the
+        game will be played.
+        I will create to new Boat objects and the size will be decided by the parameter numOfBoats and that will decide the size
+        of playerOneBoats, and playerTwoBoats
+        Then create two string 2d arrays that will be the size of the size inputted, these will be the player boards,
+        and call them playerOneBoard and playerTwoBoard.
+        Next I will call the createPlayerBoards method for playerOneBoard and playerTwoBoard
+        Then I will print out the board of player one using the printBoard method. Then tell the first player to place
+        down their boats and call the createBoats method with the parameters being (playerOneBoats and startBoat) startBoat will be
+        decided as a parameter. It will change if the boats start being built at size two or three
+        Then I will print out multiple lines so that player two can't see player ones boat.
+        Then I will repeat what I did for player one, for playerTwo.
+        Lastly I call the takeTurns method.
+     */
+
+    public void gameSetUp(int size, int numOfBoats, int startBoat) {
+        System.out.println("The size of the board is " + size + "x" + size);
+        playerOneBoats = new Boat[numOfBoats];
+        playerTwoBoats = new Boat[numOfBoats];
+        String[][] playerOneBoard = new String[size][size];
+        String[][] playerTwoBoard = new String[size][size];
+        createPlayerBoards(size, playerOneBoard);
+        createPlayerBoards(size, playerTwoBoard);
+
+        //playerOne places their boats
+        printBoard(playerOneBoard);
+        System.out.println("Player one place your boats.");
+        createBoats(playerOneBoats, startBoat);
+
+        //clears the screen
+        System.out.print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+
+        //playerTwo places their boats
+        printBoard(playerTwoBoard);
+        System.out.println("Player two place your boats.");
+        createBoats(playerTwoBoats, startBoat);
+
+        //clears the screen
+        System.out.print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+
+        //starts the guessing part of the game
+        takeTurns(playerOneBoats, playerTwoBoats, playerOneBoard, playerTwoBoard);
+    }
+
+    /*
+    This method will create the player boards. It will take in two parameters, the size of the board and a 2d string array
+    of the board that is going to be created.
+    I will use a nested for loop that will go through the whole 2d array and make all the values '~' which represents water.
+     */
+
+    public void createPlayerBoards(int size, String[][] board) {
+        for (int x = 0; x < size; x++) {
+            for (int y = 0; y < size; y++) {
+                //sets value
+                board[x][y] = "~";
+            }
+        }
+    }
+
+    /*
+    This method will print out the board, it will have one parameter which will be a 2d string array
+    I will use a for loop that will go through the rows. Within that for loop I will have two for loops for the columns
+    The first for loop will print out the coordinates
+    The second for loop will print out the value
+     */
+
+    public void printBoard(String[][] board) {
+        for (int x = 0; x < board.length; x++) {
+            for (int y = 0; y < board[x].length; y++) {
+                //prints out coordinates
+                System.out.print("| " + x + "," + y + "\t");
+            }
+            System.out.println();
+            for (int y = 0; y < board[x].length; y++) {
+                //prints out values
+                System.out.print("| " + board[x][y] + "\t\t");
+            }
+            System.out.println();
+        }
+    }
+
+    /*
+    This method will be taking turns. It will have four parameters, the boats of player one and player two and also
+    the board of player one and player two.
+    I will use a while loop that while gameOver is false, it will call an if and else statement and then a statement
+    that will switch the value of playerOneTurn
+    The if statement will check if playerOneTurn is true and if so
+    It will say this is player 1's board and then print out player ones board using the printBoard method.
+    Next it will call the turn method with the arguments being string "Player 1", player two's boats and player 1's board
+    Then it will print out player one's board and then print a line to add some space.
+    The else statement will be the same as the if statement just using player 2's information
+    The take turn method will have the string "Player 2", player one's boats and player two's board
+    Then after the if and else statements it will change the value of playerOneTurn.
+    And After the while loop it will print out that you have won the game
+     */
+
+    public void takeTurns(Boat[] playerOne, Boat[] playerTwo, String[][] playerOneBoard, String[][] playerTwoBoard) {
+        while (!gameOver) {
+            if (playerOneTurn) {
+                System.out.println("This is Player 1's board: ");
+                printBoard(playerOneBoard);
+                //playerOne takes their turn
+                turn("Player 1", playerTwo, playerOneBoard);
+                printBoard(playerOneBoard);
+                System.out.println();
+            } else {
+                System.out.println("This is Player 2's board: ");
+                printBoard(playerTwoBoard);
+                //playerTwo takes their turn
+                turn("Player 2", playerOne, playerTwoBoard);
+                printBoard(playerTwoBoard);
+                System.out.println();
+            }
+            //swaps the boolean from true and false
+            playerOneTurn = !playerOneTurn;
+        }
+        //prints out after someone sinks all the ships
+        System.out.println("Congratulations you have won the game.");
+    }
+
+    /*
+    This method where the turn of the player will happen. It will take in three paramets the player who's turn it is
+    the opposing players boats and the board of the player who's turn it is
+    It will have a boolean isHit that will be false initially
+    Then it will prompt the user to enter coordinates for a guess, the first value will be stored in x and the second
+    in y
+    Then there will be a for loop that loops through the boats array taken from the parameter.
+    The first statement in the for loop will check if isHit is true or false by calling the
+    method isHit from the Boat class, with the arguements being x and y
+    Then there will be an if statement checking if isHit is true or false and if it's true it will print out
+    you have hit a ship at the coordinates inputted
+    Then have another if statement inside the above if statement that will check if the boat has sunk by calling
+    the isSunk method in the Boat class and if that is true it will print out that you have sunk an oppoonenet's battleship.
+    Then there will be another if statement inside the above if statement that will call allBoatsSunk method with the
+    parameter of the player boats and if that is true gameOver will be set to true
+    Then after the for loop I will use an if statement that checks if isHit is true and if so it will change the value
+    of the playerBoard to X
+    And if isHit is false it will print out you missed at the coordinates and change the value of playerBoard to M
+     */
+
+    public void turn(String player, Boat[] playerBoats, String[][] playerBoard) {
+        boolean isHit = false;
+        System.out.print(player + " enter a set of coordinates for a guess: ");
+        //check to make sure they typed ints
+        while (!console.hasNextInt()) {
+            console.next();
+            System.out.print("Not a valid guess, try again. Enter a set of coordinates for a guess: ");
+        }
+        int x = console.nextInt();
+        //check for non int value
+        while (!console.hasNextInt()) {
+            console.next();
+            System.out.print("Not a valid coordinate, try again. Enter a set of coordinates: ");
+        }
+        int y = console.nextInt();
+        //throws Argument exception
+        if (x > 5 || y > 5) {
+            throw new IllegalArgumentException("Coordinates are out of bounds");
+        }
+
+        for (int i = 0; i < playerBoats.length; i++) {
+            // check if the player hits a boat
+            isHit = playerBoats[i].isHit(x, y);
+            if (isHit) {
+                System.out.println("You have hit a battle ship at " + x + "," + y);
+                // check if the boat has sunk
+                if (playerBoats[i].isSunk) {
+                    System.out.println("You have sunk your opponents battleship.");
+                    // check if all boats are sunk and if the game is over
+                    if (allBoatsSunk(playerBoats)) {
+                        gameOver = true;
+                    }
+                }
+                // takes out of for loop
+                break;
+            }
+        }
+
+        if (isHit) {
+            //changes the value
+            playerBoard[x][y] = "X";
+        } else {
+            System.out.println("You have missed at " + x + "," + y);
+            //changes the value
+            playerBoard[x][y] = "M";
+        }
+    }
+
+    /*
+    This method will create the boats for the player and store them within an array that is in the parameter,
+    it will take in two parameters, an array called playerBoats and an int called boatNum
+    I will create an int call numOfBoats that will be equal to 4 and boatIndex that be equal to 0.
+    I then will use a while loop that will work until boatNum is greater than or equal to numOfBoats
+    In the while loop I will have an if statement that checks if boatNum is equal to 0 and if so
+    it will tell the user to create a boat the size of two, and then call createBoat with its argument being two and
+    store the value in the first element of the playerBoats array
+    Then an else if statement that will run twice
+    Then tell the player to create a boat the size of three
+    It will call the createBoat method with the argument being three and store it in the next element
+    Lastly the else statement will tell the user to create a boat the size of four
+    It will call the createBoat method the argument being four and store in the last element of the playBoat array.
+    Then after the if statement I will increment boatIndex and boatNum
+     */
+
+    public void createBoats(Boat[] playerBoats, int boatNum) {
+        //creates an array of all the boats
+        int numOfBoats = 4;
+        int boatIndex = 0;
+        while (boatNum < numOfBoats) {
+            if (boatNum == 0) {
+                //create boat the size of two
+                System.out.println("Create a boat the size of two.");
+                playerBoats[boatIndex] = createBoat(2);
+            } else if (boatNum < 3) {
+                //create boat the size of three
+                System.out.println("Create a boat the size of three");
+                playerBoats[boatIndex] = createBoat(3);
+            } else {
+                //create boat size of four
+                System.out.println("Create a boat the size of four");
+                playerBoats[boatIndex] = createBoat(4);
+            }
+            //increment
+            boatIndex++;
+            boatNum++;
+        }
+    }
+
+    /*
+    This method will create a boat from the Boat class and store all the coordinate and hit values of a boat in an array
+    It will take in one parameter called numOfCoords that will be the size of the array
+    First I will create a temporary array of ShipCoords and have the size of it be numOfCoords
+    Then I will use a for loop that will loop through the array
+    Then tell the user to enter coordinates and store the values in x and y.
+    Then call ShipCoords with the argument being x and y, ShipCoords will return the coordinates and the boolean hit value
+    I will store the ShipCoords call in an element of the tempCoords array
+    Then return a new boat that will have the values of the tempCoords array
+     */
+
+    public Boat createBoat(int numOfCoords) {
+        ShipCoords[] tempCoords = new ShipCoords[numOfCoords];
+
+        for (int i = 0; i < numOfCoords; i++) {
+            System.out.print("Enter a set of coordinates: ");
+            //check for no integer value
+            while (!console.hasNextInt()) {
+                console.next();
+                System.out.print("Not a valid coordinate, try again. Enter a set of coordinates: ");
+            }
+            int x = console.nextInt();
+            //check for non int value
+            while (!console.hasNextInt()) {
+                console.next();
+                System.out.print("Not a valid coordinate, try again. Enter a set of coordinates: ");
+            }
+            int y = console.nextInt();
+
+            //stores coordinates and hit value in an element of the array
+            tempCoords[i] = new ShipCoords(x, y);
+        }
+        // create a boat that has an array with the values of coordinates and hit as elements in the array
+        return new Boat(tempCoords);
+
+    }
+
+    /*
+    This method is a boolean method that will return false if one of the boats in the array has not been sunk and will
+    return true if all the boats in the array have been sunk
+    This method will have one parameter that will be an array of boats
+    I will loop through the array and check if isSunk is true or false. If isSunk is false the method will return false
+    Then if I go through the for loop without returning false, I will then return true because all the boats are
+    sunk in that array
+     */
+
+    public boolean allBoatsSunk(Boat[] boats) {
+        //check if all boats are sunk
+        for (int i = 0; i < boats.length; i++) {
+            //check if isSunk is false
+            if (!boats[i].isSunk) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+}
+
+/*
+This class will only be initialized by the BattleshipGame class
+The point of this class is to have all the information of a singular boat. It will initialize the Ship class to take
+an array from the Ship class and store that array in one place. It also will have methods to check if its sunk or has been
+hit somewhere
+ */
+
+class Boat {
+    public ShipCoords[] coords;
+    boolean isSunk = false;
+
+    /*
+    Initializes the Boat, and taking in a ShipCoords array called coords
+    This is how you would create a boat
+     */
+
+    public Boat(ShipCoords[] coords) {
+        this.coords = coords;
+    }
+
+    /*
+    This method is a boolean that checks if the boat has been hit, if so it returns true and if not it returns false
+    It will take in two int parameters that will be the coordinates of a guess
+    I would loop through the coords array, and call the isHit method from the Ship class
+    If isHit is true, I would call the setIsSunk method and return true
+    after the for loop I would return false because none of the coordinates matched
+     */
+
+    public boolean isHit(int x, int y) {
+        for (int i = 0; i < coords.length; i++) {
+            //check for a hit
+            if (coords[i].isHit(x, y)) {
+                //check if boat is sunk
+                setIsSunk();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /*
+    This method is to check is a ship has been sunk or not
+    I will use a for loop to loop through the array and inside the loop
+    I will have an if statement that checks if hit is true or false
+    If hit is false I will leave the method
+    If it goes through the whole for loop without leaving the method isSunk will be set to true
+     */
+
+    public void setIsSunk() {
+        //check if all hit values are true
+        for (int i = 0; i < coords.length; i++) {
+            //check if hit is false
+            if (!coords[i].hit) {
+                return;
+            }
+
+        }
+        isSunk = true;
+    }
+
+
+}
+
+/*
+This class will only be initialized by the Boat class
+Its point is to create the values of each part of a ship
+So every Boat array will have 3 or 4 boats in it, and every boat will have an array for each part of the ship
+So say a boat the size of three will have an array with three elements, and inside those elements will be values
+that would come from this class
+ */
+
+class ShipCoords {
+    int x;
+    int y;
+    boolean hit;
+
+    /*
+    This is to initialize and create ShipCoords, it has two int parameters, which are the coordinates
+    and sets hit to false, because the ship has not been hit yet
+     */
+
+    public ShipCoords(int x, int y) {
+        this.x = x;
+        this.y = y;
+        hit = false;
+    }
+
+    /*
+    This method is a boolean to check if the coordinates are the same as the other coordinates, if they are the same it
+    returns true and if they aren't the same it will return false
+    It takes in two int parameters that are the coordinates
+    It has an if statement that checks if the coordinates are the same and if so it sets hit equal to true
+    and returns true
+    and if they aren't the same it will return false
+     */
+
+    public boolean isHit(int x, int y) {
+        //check if coordinates are the same
+        if (this.x == x && this.y == y) {
+            hit = true;
+            return true;
+        } else {
+            return false;
+        }
+    }
+}
